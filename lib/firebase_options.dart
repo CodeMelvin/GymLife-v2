@@ -1,7 +1,24 @@
-// TEMPORARY placeholder generated for compilation.
-// REPLACE this file with the output of:
-//   flutterfire configure --project=<your-gymlife-v2-project-id>
-// (or paste the real Firebase config from the Firebase console).
+// Firebase configuration for GymLife v2.
+//
+// The real Firebase project credentials are NOT committed to this repository.
+// They are injected at build time via --dart-define, for example:
+//
+//   flutter build web --release \
+//     --dart-define=FIREBASE_WEB_API_KEY=... \
+//     --dart-define=FIREBASE_WEB_APP_ID=... \
+//     --dart-define=FIREBASE_ANDROID_API_KEY=... \
+//     --dart-define=FIREBASE_ANDROID_APP_ID=... \
+//     --dart-define=FIREBASE_IOS_API_KEY=... \
+//     --dart-define=FIREBASE_IOS_APP_ID=... \
+//     --dart-define=FIREBASE_MESSAGING_SENDER_ID=... \
+//     --dart-define=FIREBASE_PROJECT_ID=... \
+//     --dart-define=FIREBASE_AUTH_DOMAIN=... \
+//     --dart-define=FIREBASE_DATABASE_URL=... \
+//     --dart-define=FIREBASE_STORAGE_BUCKET=... \
+//     --dart-define=FIREBASE_WEB_MEASUREMENT_ID=...
+//
+// Alternatively, run `flutterfire configure` to regenerate this file with your
+// own Firebase project's values. Values left as defaults will not connect.
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
@@ -34,57 +51,161 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_WEB_API_KEY',
-    appId: 'REPLACE_WITH_WEB_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-    projectId: 'REPLACE_WITH_PROJECT_ID',
-    authDomain: 'REPLACE_WITH_PROJECT_ID.firebaseapp.com',
-    databaseURL:
-        'https://REPLACE_WITH_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'REPLACE_WITH_PROJECT_ID.firebasestorage.app',
-    measurementId: 'REPLACE_WITH_MEASUREMENT_ID',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_WEB_API_KEY',
+      defaultValue: 'YOUR_WEB_API_KEY',
+    ),
+    appId: String.fromEnvironment(
+      'FIREBASE_WEB_APP_ID',
+      defaultValue: 'YOUR_WEB_APP_ID',
+    ),
+    messagingSenderId: String.fromEnvironment(
+      'FIREBASE_MESSAGING_SENDER_ID',
+      defaultValue: 'YOUR_MESSAGING_SENDER_ID',
+    ),
+    projectId: String.fromEnvironment(
+      'FIREBASE_PROJECT_ID',
+      defaultValue: 'YOUR_PROJECT_ID',
+    ),
+    authDomain: String.fromEnvironment(
+      'FIREBASE_AUTH_DOMAIN',
+      defaultValue: 'YOUR_PROJECT_ID.firebaseapp.com',
+    ),
+    databaseURL: String.fromEnvironment(
+      'FIREBASE_DATABASE_URL',
+      defaultValue: 'YOUR_DATABASE_URL',
+    ),
+    storageBucket: String.fromEnvironment(
+      'FIREBASE_STORAGE_BUCKET',
+      defaultValue: 'YOUR_PROJECT_ID.firebasestorage.app',
+    ),
+    measurementId: String.fromEnvironment(
+      'FIREBASE_WEB_MEASUREMENT_ID',
+      defaultValue: 'YOUR_MEASUREMENT_ID',
+    ),
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_ANDROID_API_KEY',
-    appId: 'REPLACE_WITH_ANDROID_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-    projectId: 'REPLACE_WITH_PROJECT_ID',
-    databaseURL:
-        'https://REPLACE_WITH_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'REPLACE_WITH_PROJECT_ID.firebasestorage.app',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_ANDROID_API_KEY',
+      defaultValue: 'YOUR_ANDROID_API_KEY',
+    ),
+    appId: String.fromEnvironment(
+      'FIREBASE_ANDROID_APP_ID',
+      defaultValue: 'YOUR_ANDROID_APP_ID',
+    ),
+    messagingSenderId: String.fromEnvironment(
+      'FIREBASE_MESSAGING_SENDER_ID',
+      defaultValue: 'YOUR_MESSAGING_SENDER_ID',
+    ),
+    projectId: String.fromEnvironment(
+      'FIREBASE_PROJECT_ID',
+      defaultValue: 'YOUR_PROJECT_ID',
+    ),
+    databaseURL: String.fromEnvironment(
+      'FIREBASE_DATABASE_URL',
+      defaultValue: 'YOUR_DATABASE_URL',
+    ),
+    storageBucket: String.fromEnvironment(
+      'FIREBASE_STORAGE_BUCKET',
+      defaultValue: 'YOUR_PROJECT_ID.firebasestorage.app',
+    ),
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_IOS_API_KEY',
-    appId: 'REPLACE_WITH_IOS_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-    projectId: 'REPLACE_WITH_PROJECT_ID',
-    databaseURL:
-        'https://REPLACE_WITH_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'REPLACE_WITH_PROJECT_ID.firebasestorage.app',
-    iosBundleId: 'com.codemelvin.gymlifeV2',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_IOS_API_KEY',
+      defaultValue: 'YOUR_IOS_API_KEY',
+    ),
+    appId: String.fromEnvironment(
+      'FIREBASE_IOS_APP_ID',
+      defaultValue: 'YOUR_IOS_APP_ID',
+    ),
+    messagingSenderId: String.fromEnvironment(
+      'FIREBASE_MESSAGING_SENDER_ID',
+      defaultValue: 'YOUR_MESSAGING_SENDER_ID',
+    ),
+    projectId: String.fromEnvironment(
+      'FIREBASE_PROJECT_ID',
+      defaultValue: 'YOUR_PROJECT_ID',
+    ),
+    databaseURL: String.fromEnvironment(
+      'FIREBASE_DATABASE_URL',
+      defaultValue: 'YOUR_DATABASE_URL',
+    ),
+    storageBucket: String.fromEnvironment(
+      'FIREBASE_STORAGE_BUCKET',
+      defaultValue: 'YOUR_PROJECT_ID.firebasestorage.app',
+    ),
+    iosBundleId: String.fromEnvironment(
+      'FIREBASE_IOS_BUNDLE_ID',
+      defaultValue: 'com.codemelvin.gymlifeV2',
+    ),
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_IOS_API_KEY',
-    appId: 'REPLACE_WITH_IOS_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-    projectId: 'REPLACE_WITH_PROJECT_ID',
-    databaseURL:
-        'https://REPLACE_WITH_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'REPLACE_WITH_PROJECT_ID.firebasestorage.app',
-    iosBundleId: 'com.codemelvin.gymlifeV2',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_IOS_API_KEY',
+      defaultValue: 'YOUR_IOS_API_KEY',
+    ),
+    appId: String.fromEnvironment(
+      'FIREBASE_IOS_APP_ID',
+      defaultValue: 'YOUR_IOS_APP_ID',
+    ),
+    messagingSenderId: String.fromEnvironment(
+      'FIREBASE_MESSAGING_SENDER_ID',
+      defaultValue: 'YOUR_MESSAGING_SENDER_ID',
+    ),
+    projectId: String.fromEnvironment(
+      'FIREBASE_PROJECT_ID',
+      defaultValue: 'YOUR_PROJECT_ID',
+    ),
+    databaseURL: String.fromEnvironment(
+      'FIREBASE_DATABASE_URL',
+      defaultValue: 'YOUR_DATABASE_URL',
+    ),
+    storageBucket: String.fromEnvironment(
+      'FIREBASE_STORAGE_BUCKET',
+      defaultValue: 'YOUR_PROJECT_ID.firebasestorage.app',
+    ),
+    iosBundleId: String.fromEnvironment(
+      'FIREBASE_IOS_BUNDLE_ID',
+      defaultValue: 'com.codemelvin.gymlifeV2',
+    ),
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_WEB_API_KEY',
-    appId: 'REPLACE_WITH_WEB_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-    projectId: 'REPLACE_WITH_PROJECT_ID',
-    authDomain: 'REPLACE_WITH_PROJECT_ID.firebaseapp.com',
-    databaseURL:
-        'https://REPLACE_WITH_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'REPLACE_WITH_PROJECT_ID.firebasestorage.app',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_WEB_API_KEY',
+      defaultValue: 'YOUR_WEB_API_KEY',
+    ),
+    appId: String.fromEnvironment(
+      'FIREBASE_WEB_APP_ID',
+      defaultValue: 'YOUR_WEB_APP_ID',
+    ),
+    messagingSenderId: String.fromEnvironment(
+      'FIREBASE_MESSAGING_SENDER_ID',
+      defaultValue: 'YOUR_MESSAGING_SENDER_ID',
+    ),
+    projectId: String.fromEnvironment(
+      'FIREBASE_PROJECT_ID',
+      defaultValue: 'YOUR_PROJECT_ID',
+    ),
+    authDomain: String.fromEnvironment(
+      'FIREBASE_AUTH_DOMAIN',
+      defaultValue: 'YOUR_PROJECT_ID.firebaseapp.com',
+    ),
+    databaseURL: String.fromEnvironment(
+      'FIREBASE_DATABASE_URL',
+      defaultValue: 'YOUR_DATABASE_URL',
+    ),
+    storageBucket: String.fromEnvironment(
+      'FIREBASE_STORAGE_BUCKET',
+      defaultValue: 'YOUR_PROJECT_ID.firebasestorage.app',
+    ),
+    measurementId: String.fromEnvironment(
+      'FIREBASE_WEB_MEASUREMENT_ID',
+      defaultValue: 'YOUR_MEASUREMENT_ID',
+    ),
   );
 }

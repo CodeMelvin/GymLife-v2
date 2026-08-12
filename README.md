@@ -52,29 +52,33 @@ _(Screenshots will be added here.)_
 - Flutter 3.38+ (Dart 3.10+)
 - A Firebase project with **Authentication (Email/Password)** and **Realtime Database** enabled
 
-### 1. Clone & configure Firebase
+### 1. Create a new Firebase project in the [Firebase console](https://console.firebase.google.com):
 
-```sh
-git clone https://github.com/CodeMelvin/GymLife-v2.git
-cd GymLife-v2
-flutter pub get
-```
+   - Add a **Web app** and register it (for the web build).
+   - Add an **Android app** with package `com.codemelvin.gymlife_v2` (and your debug SHA-1 for local builds).
+   - Add an **iOS app** with bundle id `com.codemelvin.gymlifeV2`.
+   - Enable **Authentication → Sign-in method → Email/Password**.
+   - Create a **Realtime Database** (region `asia-southeast1` for Indonesia).
 
-Create a new Firebase project in the [Firebase console](https://console.firebase.google.com):
+2. The Firebase credentials are **not committed** to this repository (same approach as Lingua). They are injected at build time via `--dart-define`. Get the values from **Project settings → Your apps**, then build/run with:
 
-1. Add a **Web app** and register it (for the web build).
-2. Add an **Android app** with package `com.codemelvin.gymlife_v2` (and your debug SHA-1 for local builds).
-3. Add an **iOS app** with bundle id `com.codemelvin.gymlifeV2`.
-4. Enable **Authentication → Sign-in method → Email/Password**.
-5. Create a **Realtime Database** (region `asia-southeast1` for Indonesia).
-6. Generate the config file:
+   ```sh
+   flutter run \
+     --dart-define=FIREBASE_WEB_API_KEY=... \
+     --dart-define=FIREBASE_WEB_APP_ID=... \
+     --dart-define=FIREBASE_ANDROID_API_KEY=... \
+     --dart-define=FIREBASE_ANDROID_APP_ID=... \
+     --dart-define=FIREBASE_IOS_API_KEY=... \
+     --dart-define=FIREBASE_IOS_APP_ID=... \
+     --dart-define=FIREBASE_MESSAGING_SENDER_ID=... \
+     --dart-define=FIREBASE_PROJECT_ID=... \
+     --dart-define=FIREBASE_AUTH_DOMAIN=... \
+     --dart-define=FIREBASE_DATABASE_URL=... \
+     --dart-define=FIREBASE_STORAGE_BUCKET=... \
+     --dart-define=FIREBASE_WEB_MEASUREMENT_ID=...
+   ```
 
-```sh
-dart pub global activate flutterfire_cli
-flutterfire configure --project=<your-project-id>
-```
-
-This writes the real values into `lib/firebase_options.dart`.
+   > Without these defines the app compiles but cannot connect to Firebase.
 
 ### 2. Deploy database rules
 
@@ -120,11 +124,19 @@ flutter run -d chrome  # web
 
 ## Deployment (Vercel)
 
-```sh
-flutter build web --release
-```
+Build the web app **with your Firebase config injected**, then upload `build/web` to Vercel (framework preset: **Other**). The included `vercel.json` rewrites all routes to `index.html` for client-side routing.
 
-Then upload the `build/web` folder to Vercel (framework preset: **Other**). The included `vercel.json` rewrites all routes to `index.html` for client-side routing.
+```sh
+flutter build web --release \
+  --dart-define=FIREBASE_WEB_API_KEY=... \
+  --dart-define=FIREBASE_WEB_APP_ID=... \
+  --dart-define=FIREBASE_MESSAGING_SENDER_ID=... \
+  --dart-define=FIREBASE_PROJECT_ID=... \
+  --dart-define=FIREBASE_AUTH_DOMAIN=... \
+  --dart-define=FIREBASE_DATABASE_URL=... \
+  --dart-define=FIREBASE_STORAGE_BUCKET=... \
+  --dart-define=FIREBASE_WEB_MEASUREMENT_ID=...
+```
 
 ---
 
