@@ -1,0 +1,46 @@
+name: gymlife_v2
+description: "GymLife v2 - a gym membership app to browse news, order Silver/Gold/Platinum memberships, and manage your profile."
+publish_to: 'none'
+version: 2.0.0+2
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.2.1
+  firebase_database: ^12.1.0
+  firebase_auth: ^6.1.2
+  image_picker: ^1.2.1
+  intl: ^0.19.0
+  qr_flutter: ^4.1.0
+  youtube_player_iframe: ^5.1.2
+  url_launcher: ^6.1.11
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.7
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "images/logoSplash.png"
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: images/logoSplash_512.png
+  android: true
+  ios: true
+  android_12:
+    color: "#ffffff"
+    image: images/logoSplash_512.png
+
+flutter:
+  uses-material-design: true
+  assets:
+    - images/
