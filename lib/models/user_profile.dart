@@ -38,10 +38,9 @@ class UserProfile {
       profileImage: data['profileImage']?.toString() ?? '',
       activeMembership: data['activeMembership']?.toString() ?? 'None',
       membershipId: data['membershipId']?.toString() ?? '',
-      membershipExpiry:
-          (expiryRaw != null && expiryRaw.isNotEmpty)
-              ? DateTime.tryParse(expiryRaw)
-              : null,
+      membershipExpiry: (expiryRaw != null && expiryRaw.isNotEmpty)
+          ? DateTime.tryParse(expiryRaw)
+          : null,
     );
   }
 

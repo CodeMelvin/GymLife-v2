@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'constants.dart';
 import 'firebase_options.dart';
 import 'screens/admin/admin_page.dart';
 import 'screens/auth/auth_slider_page.dart';
@@ -37,8 +38,22 @@ class GymLifeApp extends StatelessWidget {
         '/admin': (_) => const AdminPage(),
       },
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF4C7FFF),
         useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: bgColor,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: accentRed,
+          brightness: Brightness.dark,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: appBarColor,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+        ),
       ),
     );
   }

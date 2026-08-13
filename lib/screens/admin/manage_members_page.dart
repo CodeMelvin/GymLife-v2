@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../constants.dart';
 import '../../models/user_profile.dart';
 import '../../services/database_service.dart';
+import '../../widgets/responsive_center.dart';
 
 class ManageMembersPage extends StatefulWidget {
   const ManageMembersPage({super.key});
@@ -31,7 +32,9 @@ class _ManageMembersPageState extends State<ManageMembersPage> {
     if (q.isEmpty) return users;
     return users
         .where(
-          (u) => u.name.toLowerCase().contains(q) || u.email.toLowerCase().contains(q),
+          (u) =>
+              u.name.toLowerCase().contains(q) ||
+              u.email.toLowerCase().contains(q),
         )
         .toList();
   }
@@ -44,15 +47,16 @@ class _ManageMembersPageState extends State<ManageMembersPage> {
 
   Future<void> _updateLevel(UserProfile profile, int delta) async {
     final index = membershipLevels.indexOf(profile.activeMembership);
-    final newIndex =
-        (index + delta).clamp(0, membershipLevels.length - 1).toInt();
+    final newIndex = (index + delta)
+        .clamp(0, membershipLevels.length - 1)
+        .toInt();
     final newLevel = membershipLevels[newIndex];
     if (newLevel == profile.activeMembership) return;
     await DatabaseService.setMembershipLevel(uid: profile.uid, level: newLevel);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${profile.name} -> $newLevel')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${profile.name} -> $newLevel')));
     }
   }
 
@@ -60,18 +64,26 @@ class _ManageMembersPageState extends State<ManageMembersPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Batalkan Keanggotaan'),
+        backgroundColor: appBarColor,
+        title: const Text(
+          'Cancel Membership',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
-          'Yakin ingin membatalkan keanggotaan ${profile.name} (${profile.activeMembership})?',
+          "Are you sure you want to cancel ${profile.name}'s membership (${profile.activeMembership})?",
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Batalkan'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
@@ -80,7 +92,9 @@ class _ManageMembersPageState extends State<ManageMembersPage> {
       await DatabaseService.cancelMembership(profile.uid);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Keanggotaan ${profile.name} dibatalkan.')),
+          SnackBar(
+            content: Text("${profile.name}'s membership has been canceled."),
+          ),
         );
       }
     }
@@ -88,246 +102,330 @@ class _ManageMembersPageState extends State<ManageMembersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('List Member')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              onChanged: (value) => setState(() => _query = value),
-              decoration: InputDecoration(
-                hintText: 'Cari nama atau email...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          title: const Text(
+            'MANAGE USERS & MEMBERS',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              letterSpacing: 1.2,
             ),
           ),
-          Expanded(
-            child: StreamBuilder<DatabaseEvent>(
-              stream: DatabaseService.allUsersStream(),
-              builder: (context, snap) {
-                if (!snap.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final users = _parseUsers(snap.data!);
-                final active = _activeMembers(users);
-                final regular = _regularUsers(users);
+          foregroundColor: Colors.white,
+          centerTitle: true,
+          bottom: const TabBar(
+            indicatorColor: accentRed,
+            tabs: [
+              Tab(text: 'ACTIVE MEMBERS', icon: Icon(Icons.stars_rounded)),
+              Tab(text: 'REGULAR USERS', icon: Icon(Icons.people_alt_outlined)),
+            ],
+          ),
+        ),
+        body: StreamBuilder<DatabaseEvent>(
+          stream: DatabaseService.allUsersStream(),
+          builder: (context, snap) {
+            if (!snap.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final users = _parseUsers(snap.data!);
+            final active = _activeMembers(users);
+            final regular = _regularUsers(users);
 
-                return DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    children: [
-                      TabBar(
-                        tabs: [
-                          Tab(text: 'Member Aktif (${active.length})'),
-                          Tab(text: 'User Biasa (${regular.length})'),
-                        ],
-                      ),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _ActiveMembersTab(
-                              members: active,
-                              onUpgrade: (p) => _updateLevel(p, 1),
-                              onDowngrade: (p) => _updateLevel(p, -1),
-                              onRemove: _confirmRemove,
-                            ),
-                            _RegularUsersTab(users: regular),
-                          ],
-                        ),
-                      ),
-                    ],
+            return TabBarView(
+              children: [_buildActiveTab(active), _buildRegularTab(regular)],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveTab(List<UserProfile> members) {
+    return ResponsiveCenter(
+      child: Column(
+        children: [
+          _buildStatHeader(members),
+          Expanded(
+            child: members.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No active members yet.',
+                      style: TextStyle(color: Colors.white24),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: members.length,
+                    itemBuilder: (context, i) => _buildMemberCard(members[i]),
                   ),
-                );
-              },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRegularTab(List<UserProfile> users) {
+    return ResponsiveCenter(
+      child: Column(
+        children: [
+          _buildSearchHeader(users.length),
+          Expanded(
+            child: users.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No regular users.',
+                      style: TextStyle(color: Colors.white24),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: users.length,
+                    itemBuilder: (context, i) => _buildUserCard(users[i]),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getMembershipColor(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'gold':
+        return const Color(0xFFFFD700);
+      case 'silver':
+        return const Color(0xFFC0C0C0);
+      case 'platinum':
+        return const Color(0xFFB0C4DE);
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  Widget _buildUserCard(UserProfile user) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: accentRed.withValues(alpha: 0.1),
+          backgroundImage: user.profileImageProvider,
+          child: user.profileImageProvider == null
+              ? Text(
+                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                  style: const TextStyle(
+                    color: accentRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
+        ),
+        title: Text(
+          user.name,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+        subtitle: Text(
+          user.email,
+          style: const TextStyle(color: Colors.white38, fontSize: 11),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchHeader(int count) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'CUSTOMER LIST',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: accentRed.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count Users',
+                  style: const TextStyle(
+                    color: accentRed,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            onChanged: (value) => setState(() => _query = value),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Search name or email...',
+              hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+              prefixIcon: const Icon(Icons.search, color: accentRed, size: 20),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.clear,
+                        color: Colors.white38,
+                        size: 18,
+                      ),
+                      onPressed: () => setState(() => _query = ''),
+                    )
+                  : null,
+              filled: true,
+              fillColor: appBarColor,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class _ActiveMembersTab extends StatelessWidget {
-  const _ActiveMembersTab({
-    required this.members,
-    required this.onUpgrade,
-    required this.onDowngrade,
-    required this.onRemove,
-  });
-
-  final List<UserProfile> members;
-  final ValueChanged<UserProfile> onUpgrade;
-  final ValueChanged<UserProfile> onDowngrade;
-  final ValueChanged<UserProfile> onRemove;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStatHeader(List<UserProfile> members) {
     int count(String level) =>
         members.where((m) => m.activeMembership == level).length;
 
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: const BoxDecoration(
+        color: appBarColor,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _statBox('SILVER', count('Silver'), const Color(0xFFC0C0C0)),
+          _statBox('GOLD', count('Gold'), const Color(0xFFFFD700)),
+          _statBox('PLATINUM', count('Platinum'), const Color(0xFFB0C4DE)),
+        ],
+      ),
+    );
+  }
+
+  Widget _statBox(String label, int val, Color color) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _StatChip(label: 'Silver', count: count('Silver'), color: Colors.blueGrey),
-              _StatChip(label: 'Gold', count: count('Gold'), color: const Color(0xFFD4A017)),
-              _StatChip(label: 'Platinum', count: count('Platinum'), color: const Color(0xFF7B68EE)),
-            ],
+        Text(
+          val.toString(),
+          style: TextStyle(
+            color: color,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        Expanded(
-          child: members.isEmpty
-              ? const Center(child: Text('Belum ada member aktif.'))
-              : ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  itemCount: members.length,
-                  itemBuilder: (context, i) {
-                    final m = members[i];
-                    final levelIndex = membershipLevels.indexOf(m.activeMembership);
-                    final date = m.membershipExpiry != null
-                        ? DateFormat('dd MMM yyyy').format(m.membershipExpiry!)
-                        : '-';
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFFE8EEFF),
-                          backgroundImage: m.profileImageProvider,
-                          child: m.profileImageProvider == null
-                              ? const Icon(Icons.person, color: Color(0xFF4C7FFF))
-                              : null,
-                        ),
-                        title: Text(
-                          m.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text('$m.email\n$date'),
-                        isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _LevelBadge(level: m.activeMembership),
-                            if (levelIndex > 0)
-                              IconButton(
-                                tooltip: 'Turunkan',
-                                icon: const Icon(Icons.arrow_downward),
-                                onPressed: () => onDowngrade(m),
-                              ),
-                            if (levelIndex < membershipLevels.length - 1)
-                              IconButton(
-                                tooltip: 'Naikkan',
-                                icon: const Icon(Icons.arrow_upward),
-                                onPressed: () => onUpgrade(m),
-                              ),
-                            IconButton(
-                              tooltip: 'Batalkan keanggotaan',
-                              icon: const Icon(
-                                Icons.block,
-                                color: Colors.redAccent,
-                              ),
-                              onPressed: () => onRemove(m),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white38,
+            fontSize: 10,
+            letterSpacing: 1,
+          ),
         ),
       ],
     );
   }
-}
 
-class _RegularUsersTab extends StatelessWidget {
-  const _RegularUsersTab({required this.users});
+  Widget _buildMemberCard(UserProfile user) {
+    final mColor = _getMembershipColor(user.activeMembership);
+    final date = user.membershipExpiry != null
+        ? DateFormat('dd MMM yyyy').format(user.membershipExpiry!)
+        : '-';
 
-  final List<UserProfile> users;
-
-  @override
-  Widget build(BuildContext context) {
-    if (users.isEmpty) {
-      return const Center(child: Text('Tidak ada user biasa.'));
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 24),
-      itemCount: users.length,
-      itemBuilder: (context, i) {
-        final u = users[i];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: const Color(0xFFE8EEFF),
-              backgroundImage: u.profileImageProvider,
-              child: u.profileImageProvider == null
-                  ? const Icon(Icons.person, color: Color(0xFF4C7FFF))
-                  : null,
-            ),
-            title: Text(u.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(u.email),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [mColor.withValues(alpha: 0.15), cardColor],
+          begin: Alignment.topLeft,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: mColor.withValues(alpha: 0.4), width: 1.2),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: mColor.withValues(alpha: 0.2),
+          backgroundImage: user.profileImageProvider,
+          child: user.profileImageProvider == null
+              ? Text(
+                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'M',
+                  style: TextStyle(color: mColor, fontWeight: FontWeight.bold),
+                )
+              : null,
+        ),
+        title: Text(
+          user.name,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-        );
-      },
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.count, required this.color});
-
-  final String label;
-  final int count;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Text('$count ', style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(label),
-        ],
-      ),
-    );
-  }
-}
-
-class _LevelBadge extends StatelessWidget {
-  const _LevelBadge({required this.level});
-
-  final String level;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4C7FFF).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        level,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF3357A4),
+        ),
+        subtitle: Text(
+          'Type: ${user.activeMembership} • Exp: $date',
+          style: TextStyle(color: mColor.withValues(alpha: 0.8), fontSize: 11),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (user.activeMembership != 'Silver')
+              IconButton(
+                tooltip: 'Downgrade',
+                icon: const Icon(
+                  Icons.arrow_circle_down_rounded,
+                  color: Colors.orangeAccent,
+                  size: 26,
+                ),
+                onPressed: () => _updateLevel(user, -1),
+              ),
+            if (user.activeMembership != 'Platinum')
+              IconButton(
+                tooltip: 'Upgrade',
+                icon: const Icon(
+                  Icons.arrow_circle_up_rounded,
+                  color: Colors.greenAccent,
+                  size: 26,
+                ),
+                onPressed: () => _updateLevel(user, 1),
+              ),
+            IconButton(
+              tooltip: 'Cancel membership',
+              icon: const Icon(
+                Icons.delete_forever_rounded,
+                color: Colors.redAccent,
+                size: 24,
+              ),
+              onPressed: () => _confirmRemove(user),
+            ),
+          ],
         ),
       ),
     );

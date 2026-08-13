@@ -23,22 +23,23 @@ class AuthService {
     );
     final uid = cred.user!.uid;
     final timestamp = ServerValue.timestamp;
-    await FirebaseDatabase.instance
-        .ref('accounts/$uid')
-        .set({'email': email.trim(), 'username': name.trim(), 'role': 'user', 'createdAt': timestamp});
-    await FirebaseDatabase.instance
-        .ref('users/$uid')
-        .set({
-          'name': name.trim(),
-          'email': email.trim(),
-          'description': '',
-          'gender': '',
-          'profileImage': '',
-          'activeMembership': 'None',
-          'membershipId': '',
-          'membershipExpiry': '',
-          'createdAt': timestamp,
-        });
+    await FirebaseDatabase.instance.ref('accounts/$uid').set({
+      'email': email.trim(),
+      'username': name.trim(),
+      'role': 'user',
+      'createdAt': timestamp,
+    });
+    await FirebaseDatabase.instance.ref('users/$uid').set({
+      'name': name.trim(),
+      'email': email.trim(),
+      'description': '',
+      'gender': '',
+      'profileImage': '',
+      'activeMembership': 'None',
+      'membershipId': '',
+      'membershipExpiry': '',
+      'createdAt': timestamp,
+    });
     return cred;
   }
 

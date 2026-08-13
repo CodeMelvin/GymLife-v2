@@ -18,6 +18,8 @@ class _SignInPageState extends State<SignInPage> {
   final _passCtrl = TextEditingController();
   bool _loading = false;
 
+  static const _navyButton = Color.fromARGB(255, 17, 39, 93);
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -30,7 +32,7 @@ class _SignInPageState extends State<SignInPage> {
     final password = _passCtrl.text;
 
     if (email.isEmpty || password.isEmpty) {
-      _showMessage('Isi email dan password terlebih dahulu.');
+      _showMessage('Please enter your email and password.');
       return;
     }
 
@@ -43,7 +45,9 @@ class _SignInPageState extends State<SignInPage> {
 
       if (role == null) {
         await AuthService.signOut();
-        _showMessage('Data peran pengguna tidak ditemukan. Hubungi admin.');
+        _showMessage(
+          'Account role not found. Please contact the administrator.',
+        );
       } else if (role == 'admin') {
         Navigator.pushReplacementNamed(context, '/admin');
       } else {
@@ -52,7 +56,7 @@ class _SignInPageState extends State<SignInPage> {
     } on FirebaseAuthException catch (e) {
       _showMessage(_mapAuthError(e));
     } catch (_) {
-      _showMessage('Terjadi kesalahan. Coba lagi.');
+      _showMessage('Something went wrong. Please try again.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -61,97 +65,99 @@ class _SignInPageState extends State<SignInPage> {
   String _mapAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return 'Email tidak terdaftar.';
+        return 'Email not found.';
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Email atau password salah.';
+        return 'Incorrect email or password.';
       case 'invalid-email':
-        return 'Format email tidak valid.';
+        return 'Invalid email format.';
       case 'too-many-requests':
-        return 'Terlalu banyak percobaan. Coba lagi nanti.';
+        return 'Too many attempts. Please try again later.';
       default:
-        return 'Gagal masuk: ${e.code}';
+        return 'Sign-in failed: ${e.code}';
     }
   }
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(25),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color.fromARGB(255, 56, 57, 61),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             CustomField(
               controller: _emailCtrl,
               hint: 'Email',
-              icon: Icons.email_outlined,
+              icon: Icons.email,
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 15),
             CustomField(
               controller: _passCtrl,
               hint: 'Password',
-              icon: Icons.lock_outline,
+              icon: Icons.lock,
               isPassword: true,
             ),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => Navigator.pushNamed(context, '/forgot'),
-                child: const Text('Lupa password?'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: _loading ? null : _login,
-              style: FilledButton.styleFrom(
-                backgroundColor: primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                child: const Text(
+                  'Forgot Password?',
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
-              child: _loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+            ),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: FilledButton(
+                onPressed: _loading ? null : _login,
+                style: FilledButton.styleFrom(
+                  backgroundColor: _navyButton,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Login',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    )
-                  : const Text(
-                      'Masuk',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+              ),
             ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => widget.onSwitchToIndex?.call(1),
-              child: const Text('Belum punya akun? Daftar di sini'),
+              child: const Text(
+                "Don't have an account? Register here",
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
           ],
         ),

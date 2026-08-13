@@ -1,5 +1,5 @@
 name: gymlife_v2
-description: "GymLife v2 - a gym membership app to browse news, order Silver/Gold/Platinum memberships, and manage your profile."
+description: "GymLife - a fitness gym membership app to browse news, order Silver/Gold/Platinum memberships, and manage your profile."
 publish_to: 'none'
 version: 2.0.0+2
 

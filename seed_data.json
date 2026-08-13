@@ -5,7 +5,7 @@
       "name": "Silver",
       "price": 500000,
       "durationDays": 30,
-      "benefits": ["Parkir Gratis", "Loker Pribadi"],
+      "benefits": ["Free Parking", "Personal Locker"],
       "image": "images/silver.png"
     },
     "gold": {
@@ -13,7 +13,7 @@
       "name": "Gold",
       "price": 1000000,
       "durationDays": 30,
-      "benefits": ["Parkir Gratis", "Loker Pribadi", "2x Pelatihan"],
+      "benefits": ["Free Parking", "Personal Locker", "2x Personal Training"],
       "image": "images/gold.png"
     },
     "platinum": {
@@ -21,15 +21,20 @@
       "name": "Platinum",
       "price": 1500000,
       "durationDays": 30,
-      "benefits": ["Parkir Gratis", "Loker Pribadi", "Ruang Gym VIP", "4x Pelatihan"],
+      "benefits": [
+        "Free Parking",
+        "Personal Locker",
+        "VIP Gym Room",
+        "4x Personal Training"
+      ],
       "image": "images/platinum.png"
     }
   },
   "gym_locations": {
     "pusat": {
       "id": "pusat",
-      "name": "GymLife Pusat - Jakarta",
-      "address": "Jl. Sudirman No. 123, Jakarta Pusat",
+      "name": "GymLife Central - Jakarta",
+      "address": "Jl. Sudirman No. 123, Central Jakarta",
       "phone": "021-1234567",
       "hours": "06.00 - 22.00",
       "imageUrl": "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=500"
@@ -44,28 +49,28 @@
     }
   },
   "gym_news": {
-    "promo-bulan-ini": {
-      "title": "Promo Spesial Bulan Ini",
-      "content": "Dapatkan diskon 20% untuk pendaftaran paket Gold dan Platinum selama bulan ini. Khusus member baru!",
+    "promo-this-month": {
+      "title": "Special Promo This Month",
+      "content": "Get 20% off Gold and Platinum memberships for new members throughout this month.",
       "category": "Promo",
       "date": "2026-08-01T08:00:00.000"
     },
     "fitness-challenge": {
       "title": "GymLife Fitness Challenge",
-      "content": "Ikuti tantangan kebugaran bulanan kami dan menangkan merchandise eksklusif GymLife. Terbuka untuk semua member.",
-      "category": "Acara",
+      "content": "Join our monthly fitness challenge and win exclusive GymLife merchandise. Open to all members.",
+      "category": "Event",
       "date": "2026-08-05T09:30:00.000"
     },
-    "jadwal-kelas-baru": {
-      "title": "Jadwal Kelas Baru",
-      "content": "Mulai minggu depan, kami menambahkan kelas yoga sore dan kelas spinning pagi setiap hari Senin dan Rabu.",
-      "category": "Jadwal Kelas",
+    "new-class-schedule": {
+      "title": "New Class Schedule",
+      "content": "Starting next week, we are adding evening yoga classes and morning spinning classes every Monday and Wednesday.",
+      "category": "Class Schedule",
       "date": "2026-08-08T10:00:00.000"
     },
-    "tips-hidup-sehat": {
-      "title": "Tips Hidup Sehat",
-      "content": "Jangan lupa minum air putih yang cukup dan tidur 7-8 jam setiap malam untuk mendukung performa latihanmu.",
-      "category": "Info Umum",
+    "healthy-living-tips": {
+      "title": "Healthy Living Tips",
+      "content": "Remember to stay hydrated and get 7-8 hours of sleep every night to support your training performance.",
+      "category": "General",
       "date": "2026-08-10T07:00:00.000"
     }
   }

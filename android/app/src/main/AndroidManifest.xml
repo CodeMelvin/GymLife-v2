@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="gymlife_v2"
+        android:label="GymLife"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

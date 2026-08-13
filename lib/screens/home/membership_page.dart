@@ -3,147 +3,207 @@ import 'package:intl/intl.dart';
 
 import '../../models/membership_plan.dart';
 import '../../services/cart_manager.dart';
+import '../../widgets/responsive_center.dart';
 import 'home_page.dart';
 
-class MembershipPage extends StatefulWidget {
+class MembershipPage extends StatelessWidget {
   const MembershipPage({super.key, required this.plan});
 
   final MembershipPlan plan;
 
-  @override
-  State<MembershipPage> createState() => _MembershipPageState();
-}
+  Color get _accent {
+    switch (plan.name) {
+      case 'Gold':
+        return const Color(0xFFFFC107);
+      case 'Platinum':
+        return const Color(0xFF7E8B92);
+      default:
+        return const Color(0xFF8A8A8A);
+    }
+  }
 
-class _MembershipPageState extends State<MembershipPage> {
-  final _price = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp',
-    decimalDigits: 0,
-  );
+  Widget _buildCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        image: DecorationImage(
+          image: AssetImage(plan.image),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(
+            Colors.black.withValues(alpha: 0.25),
+            BlendMode.darken,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${plan.name} Member',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Rp ${NumberFormat('#,###').format(plan.price)} / ${plan.durationDays} days',
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
 
-  void _addToCart() {
-    CartManager.instance.add(widget.plan);
+  Widget _buildBenefitsGrid() {
+    return GridView.builder(
+      itemCount: plan.benefits.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 2.5,
+      ),
+      itemBuilder: (context, index) {
+        final benefit = plan.benefits[index];
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: _accent.withValues(alpha: 0.6)),
+            borderRadius: BorderRadius.circular(12),
+            color: _accent.withValues(alpha: 0.1),
+          ),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.black87,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    benefit,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentMethod() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      decoration: BoxDecoration(
+        color: _accent.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _accent.withValues(alpha: 0.5)),
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Cash',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          Icon(Icons.money, color: Colors.green),
+        ],
+      ),
+    );
+  }
+
+  void _addToCart(BuildContext context) {
+    CartManager.instance.add(plan);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${plan.name} Membership added to your cart.'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomePage(initialIndex: 1)),
+      MaterialPageRoute(builder: (_) => const HomePage(initialIndex: 3)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final plan = widget.plan;
     return Scaffold(
-      appBar: AppBar(title: Text('${plan.name} Privilege')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Image.asset(
-                plan.image,
-                width: 180,
-                height: 180,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: Text(
-                plan.name,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF3357A4),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Center(
-              child: Text(
-                '${_price.format(plan.price)} / ${plan.durationDays} hari',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8EEFF),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Keuntungan',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+      appBar: AppBar(
+        title: Text('${plan.name} Membership'),
+        backgroundColor: _accent.withValues(alpha: 0.9),
+        foregroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: ResponsiveCenter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCard(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildBenefitsGrid(),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Payment Method:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        _buildPaymentMethod(),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  for (final benefit in plan.benefits)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF4C7FFF),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(benefit)),
-                        ],
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(
+                      Icons.shopping_cart_checkout_rounded,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Add to Cart',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFF4C7FFF).withValues(alpha: 0.3),
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.payments_outlined, color: Color(0xFF4C7FFF)),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Pembayaran dilakukan secara tunai dengan menunjukkan kode QR pada kasir setelah checkout.',
-                      style: TextStyle(fontSize: 13),
-                    ),
+                    onPressed: () => _addToCart(context),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _addToCart,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF4C7FFF),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text(
-                'Masukkan ke Keranjang',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

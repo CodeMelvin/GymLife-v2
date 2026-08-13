@@ -1,3 +1,6 @@
 {
+  "installCommand": "echo 'dependencies handled by vercel-build.sh'",
+  "buildCommand": "bash vercel-build.sh",
+  "outputDirectory": "build/web",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

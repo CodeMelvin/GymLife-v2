@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const Color primaryColor = Color(0xFF4C7FFF);
+import '../constants.dart';
 
 class CustomField extends StatefulWidget {
   const CustomField({
@@ -33,6 +33,7 @@ class _CustomFieldState extends State<CustomField> {
       decoration: BoxDecoration(
         border: Border.all(color: primaryColor.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
       ),
       child: TextFormField(
         controller: widget.controller,
@@ -42,21 +43,21 @@ class _CustomFieldState extends State<CustomField> {
         style: const TextStyle(color: Colors.black87),
         decoration: InputDecoration(
           hintText: widget.hint,
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle: TextStyle(color: Colors.grey.shade500),
           prefixIcon: Icon(widget.icon, color: primaryColor),
           suffixIcon: widget.isPassword
               ? IconButton(
                   icon: Icon(
                     _obscure ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.grey,
+                    color: primaryColor,
                   ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 )
               : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 16,
+            horizontal: 15,
+            vertical: 15,
           ),
         ),
       ),

@@ -1,22 +1,19 @@
 import 'package:firebase_database/firebase_database.dart';
 
-import '../models/gym_location.dart';
 import '../models/membership_plan.dart';
-import '../models/user_profile.dart';
 
 class DatabaseService {
-  static const String accountsPath = 'accounts';
   static const String usersPath = 'users';
   static const String newsPath = 'gym_news';
   static const String plansPath = 'membership_plans';
   static const String locationsPath = 'gym_locations';
+  static const String ordersPath = 'membership_orders';
 
   static DatabaseReference _root() => FirebaseDatabase.instance.ref();
 
   // ---------- live streams ----------
 
-  static Stream<DatabaseEvent> newsStream() =>
-      _root().child(newsPath).onValue;
+  static Stream<DatabaseEvent> newsStream() => _root().child(newsPath).onValue;
 
   static Stream<DatabaseEvent> plansStream() =>
       _root().child(plansPath).onValue;
@@ -29,45 +26,6 @@ class DatabaseService {
 
   static Stream<DatabaseEvent> singleUserStream(String uid) =>
       _root().child('$usersPath/$uid').onValue;
-
-  // ---------- one-shot reads ----------
-
-  static Future<Map<String, MembershipPlan>> fetchPlans() async {
-    final snap = await _root().child(plansPath).get();
-    final result = <String, MembershipPlan>{};
-    if (snap.exists && snap.value is Map) {
-      final raw = Map<dynamic, dynamic>.from(snap.value as Map);
-      raw.forEach((key, value) {
-        if (value is Map) {
-          final plan = MembershipPlan.fromRTDB(key.toString(), value);
-          result[plan.id] = plan;
-        }
-      });
-    }
-    return result;
-  }
-
-  static Future<List<GymLocation>> fetchLocations() async {
-    final snap = await _root().child(locationsPath).get();
-    final result = <GymLocation>[];
-    if (snap.exists && snap.value is Map) {
-      final raw = Map<dynamic, dynamic>.from(snap.value as Map);
-      raw.forEach((key, value) {
-        if (value is Map) {
-          result.add(GymLocation.fromRTDB(key.toString(), value));
-        }
-      });
-    }
-    return result;
-  }
-
-  static Future<UserProfile> fetchUser(String uid) async {
-    final snap = await _root().child('$usersPath/$uid').get();
-    if (snap.exists && snap.value is Map) {
-      return UserProfile.fromRTDB(uid, Map<dynamic, dynamic>.from(snap.value as Map));
-    }
-    return UserProfile.fromRTDB(uid, const {});
-  }
 
   // ---------- profile ----------
 
@@ -88,7 +46,9 @@ class DatabaseService {
     required String uid,
     required String base64Image,
   }) {
-    return _root().child('$usersPath/$uid').update({'profileImage': base64Image});
+    return _root().child('$usersPath/$uid').update({
+      'profileImage': base64Image,
+    });
   }
 
   static Future<void> activateMembership({
@@ -100,6 +60,20 @@ class DatabaseService {
       'activeMembership': plan.name,
       'membershipId': plan.id,
       'membershipExpiry': expiry.toIso8601String(),
+    });
+  }
+
+  /// Appends an immutable audit record of a completed order for the user.
+  static Future<void> recordOrder({
+    required String uid,
+    required MembershipPlan plan,
+  }) {
+    return _root().child('$ordersPath/$uid').push().set({
+      'planId': plan.id,
+      'planName': plan.name,
+      'price': plan.price,
+      'status': 'paid',
+      'createdAt': ServerValue.timestamp,
     });
   }
 

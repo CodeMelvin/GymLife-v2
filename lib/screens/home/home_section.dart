@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../constants.dart';
 import '../../models/membership_plan.dart';
 import '../../models/news_item.dart';
 import '../../models/user_profile.dart';
@@ -42,21 +45,43 @@ class _HomeSectionState extends State<HomeSection> {
 
         return SafeArea(
           bottom: false,
-          child: RefreshIndicator(
-            onRefresh: () => Future.delayed(const Duration(milliseconds: 400)),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 24),
-              children: [
-                _Header(profile: profile, uid: uid),
-                const SizedBox(height: 8),
-                _MembershipBanner(profile: profile),
-                const _SectionHeader('Berita Terbaru'),
-                _NewsCarousel(),
-                const _SectionHeader('Pilih Keanggotaan'),
-                _PlansList(price: _price),
-              ],
-            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 900;
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 24),
+                children: [
+                  _Header(profile: profile),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: wide ? 1100 : double.infinity,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _NewsCarousel(wide: wide),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(20, 25, 20, 10),
+                            child: Text(
+                              'Choose Membership',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          _PlansList(price: _price),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         );
       },
@@ -65,143 +90,95 @@ class _HomeSectionState extends State<HomeSection> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.profile, required this.uid});
-
-  final UserProfile? profile;
-  final String uid;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          Image.asset('images/gymlife.png', width: 44, height: 44),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'GymLife',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Color(0xFF3357A4),
-                ),
-              ),
-              Text(
-                'Halo, ${profile?.name.isEmpty ?? true ? 'Member' : profile!.name}!',
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-            ],
-          ),
-          const Spacer(),
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: const Color(0xFFE8EEFF),
-            backgroundImage: profile?.profileImageProvider,
-            child: profile?.profileImageProvider == null
-                ? const Icon(Icons.person, color: Color(0xFF4C7FFF))
-                : null,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MembershipBanner extends StatelessWidget {
-  const _MembershipBanner({required this.profile});
+  const _Header({required this.profile});
 
   final UserProfile? profile;
 
-  @override
-  Widget build(BuildContext context) {
-    final p = profile;
-    if (p == null || !p.hasMembership) {
-      return Container(
-        margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF4C7FFF), Color(0xFF3357A4)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Row(
+  void _showEnlargedAvatar(BuildContext context) {
+    final provider = profile?.profileImageProvider;
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.fitness_center, color: Colors.white),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Upgrade keanggotaanmu sekarang dan nikmati berbagai fasilitas eksklusif!',
-                style: TextStyle(color: Colors.white),
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(context),
               ),
+            ),
+            CircleAvatar(
+              radius: 110,
+              backgroundColor: const Color(0xFF1A1A2E),
+              backgroundImage: provider,
+              child: provider == null
+                  ? const Icon(Icons.person, size: 90, color: Colors.white24)
+                  : null,
             ),
           ],
         ),
-      );
-    }
-
-    final active = p.isMembershipActive;
-    final date = p.membershipExpiry != null
-        ? DateFormat('dd MMM yyyy').format(p.membershipExpiry!)
-        : '-';
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3357A4), Color(0xFF1F2A6B)],
-        ),
-        borderRadius: BorderRadius.circular(16),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (profile?.name.isEmpty ?? true) ? 'Member' : profile!.name;
+    final gender = profile?.gender ?? '';
+    final provider = profile?.profileImageProvider;
+    final isMale = gender.toLowerCase() == 'male';
+
+    return Container(
+      color: appBarColor,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          Image.asset(
-            p.membershipImage!,
-            width: 56,
-            height: 56,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          GestureDetector(
+            onTap: provider != null ? () => _showEnlargedAvatar(context) : null,
+            child: CircleAvatar(
+              radius: 22,
+              backgroundColor: accentRed,
+              backgroundImage: provider,
+              child: provider == null
+                  ? const Icon(Icons.person, color: Colors.white70)
+                  : null,
+            ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${p.activeMembership} Member',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hello, $name',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  active ? 'Berlaku hingga $date' : 'Status: Kadaluarsa',
-                  style: TextStyle(
-                    color: active ? Colors.white70 : Colors.orangeAccent,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: active ? Colors.green : Colors.orange,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              active ? 'Aktif' : 'Expired',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
               ),
-            ),
+              if (gender.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(
+                      isMale ? Icons.male : Icons.female,
+                      color: isMale ? Colors.blue : Colors.pink,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      gender,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
           ),
         ],
       ),
@@ -209,28 +186,57 @@ class _MembershipBanner extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
+class _NewsCarousel extends StatefulWidget {
+  const _NewsCarousel({required this.wide});
 
-  final String title;
+  final bool wide;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.bold,
-          color: Colors.indigo,
-        ),
-      ),
-    );
-  }
+  State<_NewsCarousel> createState() => _NewsCarouselState();
 }
 
-class _NewsCarousel extends StatelessWidget {
+class _NewsCarouselState extends State<_NewsCarousel> {
+  late PageController _controller;
+  Timer? _timer;
+  int _current = 0;
+  int _count = 0;
+
+  double get _viewportFraction => widget.wide ? 0.48 : 0.9;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController(viewportFraction: _viewportFraction);
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) => _autoSlide());
+  }
+
+  @override
+  void didUpdateWidget(covariant _NewsCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.wide != widget.wide) {
+      _controller.dispose();
+      _controller = PageController(viewportFraction: _viewportFraction);
+      _current = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _autoSlide() {
+    if (!_controller.hasClients || _count == 0) return;
+    final next = (_current + 1) % _count;
+    _controller.animateToPage(
+      next,
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DatabaseEvent>(
@@ -238,31 +244,68 @@ class _NewsCarousel extends StatelessWidget {
       builder: (context, snap) {
         if (!snap.hasData || snap.data!.snapshot.value == null) {
           return const SizedBox(
-            height: 140,
-            child: Center(child: Text('Belum ada berita.')),
+            height: 160,
+            child: Center(child: Text('No news yet.')),
           );
         }
         final raw = Map<dynamic, dynamic>.from(
           snap.data!.snapshot.value as Map,
         );
-        final items = raw.entries
-            .map(
-              (e) => NewsItem.fromRTDB(
-                e.key.toString(),
-                Map<dynamic, dynamic>.from(e.value as Map),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
+        final items =
+            raw.entries
+                .map(
+                  (e) => NewsItem.fromRTDB(
+                    e.key.toString(),
+                    Map<dynamic, dynamic>.from(e.value as Map),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
+        _count = items.length;
 
-        return SizedBox(
-          height: 160,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: items.length,
-            itemBuilder: (context, i) => _NewsCard(item: items[i]),
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Text(
+                'Latest News',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 180,
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: items.length,
+                onPageChanged: (i) => setState(() => _current = i),
+                itemBuilder: (context, i) => _NewsCard(item: items[i]),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                items.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 8,
+                  width: _current == index ? 20 : 8,
+                  decoration: BoxDecoration(
+                    color: _current == index
+                        ? const Color.fromARGB(255, 103, 112, 172)
+                        : Colors.white24,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -274,47 +317,105 @@ class _NewsCard extends StatelessWidget {
 
   final NewsItem item;
 
+  IconData get _icon {
+    switch (item.category.toLowerCase()) {
+      case 'promo':
+        return Icons.local_offer_rounded;
+      case 'event':
+        return Icons.event_available_rounded;
+      case 'class schedule':
+        return Icons.calendar_month_rounded;
+      case 'general':
+        return Icons.info_outline_rounded;
+      default:
+        return Icons.notifications_active_rounded;
+    }
+  }
+
+  Color get _iconColor {
+    switch (item.category.toLowerCase()) {
+      case 'promo':
+        return Colors.orangeAccent;
+      case 'event':
+        return Colors.cyanAccent;
+      case 'class schedule':
+        return Colors.lightGreenAccent;
+      case 'general':
+        return Colors.blueAccent;
+      default:
+        return Colors.white70;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _showDetail(context),
       child: Container(
-        width: 220,
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: const Color(0xFFE8EEFF),
-          borderRadius: BorderRadius.circular(16),
+          color: const Color.fromARGB(255, 54, 56, 68),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.white10),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4C7FFF),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                item.category,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accentRed.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: accentRed.withValues(alpha: 0.5),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(_icon, color: _iconColor, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        item.category.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                Text(
+                  DateFormat('dd MMM yyyy').format(item.date),
+                  style: const TextStyle(color: Colors.white38, fontSize: 10),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               item.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              item.content,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const Spacer(),
-            Text(
-              DateFormat('dd MMM yyyy').format(item.date),
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ],
         ),
@@ -326,43 +427,81 @@ class _NewsCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 15),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF4C7FFF),
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(
-                item.category,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 25,
+                  vertical: 20,
                 ),
+                children: [
+                  Text(
+                    item.category.toUpperCase(),
+                    style: const TextStyle(
+                      color: accentRed,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    DateFormat('dd MMM yyyy').format(item.date),
+                    style: const TextStyle(color: Colors.white38, fontSize: 13),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Divider(color: Colors.white10),
+                  ),
+                  Text(
+                    item.content,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A1F4D),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: const Text('Close'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              item.title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('dd MMM yyyy').format(item.date),
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 14),
-            Text(item.content),
-            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -389,20 +528,25 @@ class _PlansList extends StatelessWidget {
         final raw = Map<dynamic, dynamic>.from(
           snap.data!.snapshot.value as Map,
         );
-        final plans = raw.entries
-            .map(
-              (e) => MembershipPlan.fromRTDB(
-                e.key.toString(),
-                Map<dynamic, dynamic>.from(e.value as Map),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.price.compareTo(b.price));
+        final plans =
+            raw.entries
+                .map(
+                  (e) => MembershipPlan.fromRTDB(
+                    e.key.toString(),
+                    Map<dynamic, dynamic>.from(e.value as Map),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => a.price.compareTo(b.price));
 
-        return Column(
-          children: [
-            for (final plan in plans) _PlanCard(plan: plan, price: price),
-          ],
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final plan in plans) _PlanCard(plan: plan, price: price),
+            ],
+          ),
         );
       },
     );
@@ -418,83 +562,62 @@ class _PlanCard extends StatelessWidget {
   Color get _accent {
     switch (plan.name) {
       case 'Gold':
-        return const Color(0xFFD4A017);
+        return const Color(0xFFFFD700);
       case 'Platinum':
-        return const Color(0xFF7B68EE);
+        return const Color(0xFFB0C4DE);
       default:
-        return const Color(0xFF8D99AE);
+        return const Color(0xFFC0C0C0);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Material(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        elevation: 1,
-        child: InkWell(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => MembershipPage(plan: plan)),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 18),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MembershipPage(plan: plan),
-              ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              border: Border.all(color: _accent.withValues(alpha: 0.4)),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                Image.asset(
-                  plan.image,
-                  width: 56,
-                  height: 56,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        plan.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${price.format(plan.price)} / ${plan.durationDays} hari',
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        plan.benefits.join(' • '),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
+          border: Border.all(color: Colors.white24),
+          image: DecorationImage(
+            image: AssetImage(plan.image),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withValues(alpha: 0.4),
+              BlendMode.darken,
             ),
           ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${plan.name} Member',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _accent,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${price.format(plan.price)}/month',
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+          ],
         ),
       ),
     );

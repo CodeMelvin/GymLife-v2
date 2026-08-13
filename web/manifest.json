@@ -1,11 +1,11 @@
 {
-    "name": "gymlife_v2",
-    "short_name": "gymlife_v2",
+    "name": "GymLife",
+    "short_name": "GymLife",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#4C7FFF",
+    "description": "GymLife - a fitness gym membership app to browse news, order memberships, and manage your profile.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

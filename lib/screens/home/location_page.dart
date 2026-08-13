@@ -2,130 +2,82 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../constants.dart';
 import '../../models/gym_location.dart';
 import '../../services/database_service.dart';
+import '../../widgets/responsive_center.dart';
 
 class LocationPage extends StatelessWidget {
   const LocationPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: StreamBuilder<DatabaseEvent>(
-        stream: DatabaseService.locationsStream(),
-        builder: (context, snap) {
-          if (!snap.hasData || snap.data!.snapshot.value == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final raw = Map<dynamic, dynamic>.from(
-            snap.data!.snapshot.value as Map,
-          );
-          final locations = raw.entries
-              .map(
-                (e) => GymLocation.fromRTDB(
-                  e.key.toString(),
-                  Map<dynamic, dynamic>.from(e.value as Map),
-                ),
-              )
-              .toList();
-
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 24),
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
-                child: Text(
-                  'Lokasi Gym',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
-                  ),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
-                child: Text(
-                  'Temukan cabang GymLife terdekat dari lokasimu.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              for (final location in locations) _LocationCard(location: location),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _LocationCard extends StatelessWidget {
-  const _LocationCard({required this.location});
-
-  final GymLocation location;
-
-  void _showDetail(BuildContext context) {
+  void _showLocationDetail(BuildContext context, GymLocation location) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      backgroundColor: bgColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                location.imageUrl,
-                width: double.infinity,
-                height: 140,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 140,
-                  color: const Color(0xFFE8EEFF),
-                  child: const Icon(Icons.location_on, size: 48),
-                ),
-              ),
+            Center(
+              child: Container(width: 40, height: 4, color: Colors.white24),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 20),
             Text(
               location.name,
               style: const TextStyle(
-                fontSize: 18,
+                color: Colors.white,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
-            _InfoRow(
-              icon: Icons.place_outlined,
-              text: location.address,
-            ),
-            _InfoRow(
-              icon: Icons.schedule,
-              text: location.hours,
-            ),
-            _InfoRow(
-              icon: Icons.phone_outlined,
-              text: location.phone,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _openInMaps(),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF4C7FFF),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  color: Colors.redAccent,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    location.address,
+                    style: const TextStyle(color: Colors.white70),
                   ),
                 ),
-                icon: const Icon(Icons.map_outlined),
-                label: const Text('Buka di Google Maps'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  color: Colors.blueAccent,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Hours: ${location.hours}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => _openMaps(location),
+              icon: const Icon(Icons.map),
+              label: const Text(
+                'Open in Google Maps',
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentRed,
+                minimumSize: const Size(double.infinity, 50),
               ),
             ),
           ],
@@ -134,110 +86,97 @@ class _LocationCard extends StatelessWidget {
     );
   }
 
-  Future<void> _openInMaps() async {
+  Future<void> _openMaps(GymLocation location) async {
     final uri = Uri.https('www.google.com', '/maps/search/', {
       'api': '1',
-      'query': '${location.name} ${location.address}',
+      'query': '${location.name}, ${location.address}',
     });
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-      child: Material(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        elevation: 1,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _showDetail(context),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade200),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    location.imageUrl,
-                    width: 72,
-                    height: 72,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 72,
-                      height: 72,
-                      color: const Color(0xFFE8EEFF),
-                      child: const Icon(Icons.location_on),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        location.name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        location.address,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Jam buka: ${location.hours}',
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
+    return SafeArea(
+      bottom: false,
+      child: Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          title: const Text(
+            'GYM LOCATIONS',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
-      ),
-    );
-  }
-}
+        body: ResponsiveCenter(
+          child: StreamBuilder<DatabaseEvent>(
+            stream: DatabaseService.locationsStream(),
+            builder: (context, snap) {
+              if (!snap.hasData || snap.data!.snapshot.value == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final raw = Map<dynamic, dynamic>.from(
+                snap.data!.snapshot.value as Map,
+              );
+              final locations = raw.entries
+                  .map(
+                    (e) => GymLocation.fromRTDB(
+                      e.key.toString(),
+                      Map<dynamic, dynamic>.from(e.value as Map),
+                    ),
+                  )
+                  .toList();
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: const Color(0xFF4C7FFF)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: const TextStyle(fontSize: 13)),
+              return ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: locations.length,
+                itemBuilder: (context, index) {
+                  final loc = locations[index];
+                  return GestureDetector(
+                    onTap: () => _showLocationDetail(context, loc),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        image: DecorationImage(
+                          image: NetworkImage(loc.imageUrl),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                            Colors.black.withValues(alpha: 0.4),
+                            BlendMode.darken,
+                          ),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              loc.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              loc.address,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
-        ],
+        ),
       ),
     );
   }

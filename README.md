@@ -1,34 +1,28 @@
-# 💪 GymLife v2
+# 💪 GymLife
 
 > A fitness gym membership app built with Flutter and Firebase — browse gym news, order Silver / Gold / Platinum memberships, and manage your membership status.
-
-## 📸 Screenshots
-
-_(Screenshots will be added here.)_
-
----
 
 ## ✨ Features
 
 - 🔐 **Authentication** — sign up, sign in, and password reset with role-based access (admin / customer)
-- 📰 **Gym News** — browse the latest news (Promo, Acara, Jadwal Kelas, Info Umum) on the home page
+- 📰 **Gym News** — browse the latest news (Promo, Event, Class Schedule, General) on the home page
 - 🏷️ **Membership Plans** — order Silver, Gold, or Platinum memberships with full benefits details
 - 🛒 **Cart & QR Payment** — add a plan to the cart, generate a QR invoice, and confirm cash payment at the front desk
 - 📅 **Membership Status** — view your active membership type, expiry date, and status (active / expired)
 - 🏋️ **Workout Guides** — watch exercise tutorial videos (push up, sit up, pull up) via embedded YouTube player
-- 📍 **Gym Locations** — find branch locations with address, opening hours, phone, and a "Open in Google Maps" shortcut
+- 📍 **Gym Locations** — find branch locations with address, opening hours, phone, and an "Open in Google Maps" shortcut
 - 👤 **Profile** — edit name, bio, and gender; set a profile photo from gallery/camera; change password
 - ⚙️ **Admin Panel** — add/edit/delete gym news, view all members with membership type, upgrade/downgrade levels, and cancel memberships
-
----
+- 📱 **Responsive** — mobile-first layout that stays comfortable on large web/desktop screens
 
 ## 🛠️ Built With
 
-- 🟣 **Flutter** — cross-platform UI framework (Dart)
+- 🟣 **Flutter** — cross-platform UI framework (Dart), Material 3
 - 🔥 **Firebase** — Authentication (Email/Password) and Realtime Database
 - 📷 **image_picker** — profile photo from gallery/camera
 - 📱 **qr_flutter** — QR invoice generation
 - ▶️ **youtube_player_iframe** — embedded workout videos
+- 🔗 **url_launcher** — deep links to Google Maps
 
 ---
 
@@ -36,8 +30,8 @@ _(Screenshots will be added here.)_
 
 | Role | Email | Password | Access |
 |---|---|---|---|
-| Admin | `admin@gymlife.app` | `GymAdmin@2026` | Manage news, view & manage all members |
-| Customer | `demo@gymlife.app` | `Demo123456!` | Order memberships, view status, profile |
+| Admin | `admin_master@gmail.com` | `12345678` | Manage news, view & manage all members |
+| Customer | `demo@gymlife.app` | `demo123` | Order memberships, view status, profile |
 
 You can also register a new account from the **Register** screen (role: customer).
 
@@ -62,7 +56,7 @@ Build the APK (see **Option D**), or grab a release APK from the [Releases](../.
 5. Alternatively, run `flutter run` in the terminal
 6. Log in with a demo account, or create a new account from the **Register** screen (role: customer)
 
-> 💡 GymLife v2 is cross-platform: Firebase is configured for **Android**, **Web**, **iOS**, and **macOS** (single project). On Android use an emulator/device; for the web version pick Chrome/Edge in VS Code (`flutter run -d chrome`).
+> 💡 GymLife is cross-platform: Firebase is configured for **Android**, **Web**, and **iOS** (single project). On Android use an emulator/device; for the web version pick Chrome/Edge in VS Code (`flutter run -d chrome`); iOS builds run on a Mac with Xcode.
 
 ### Option D - Build from the command line
 
@@ -113,11 +107,16 @@ flutter build web --release \
 
 > **Note:** `android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`, `macos/Runner/GoogleService-Info.plist`, and `firebase.json` are git-ignored and never pushed.
 
-The security rules live in **`firebase.rules.json`** at the project root. They keep user data isolated: a user can only read and write their own account and membership records, while the admin role is assigned manually in the Firebase Console (Authentication → Users, then add `accounts/{uid}` → `role: "admin"`). Users cannot promote themselves.
+### 🔒 Security rules
 
-### Seeding the admin account
+The security rules live in **`firebase.rules.json`** at the project root. Highlights:
 
-The admin is **not** created through the app. In the Firebase Console:
+- **Role self-promotion is blocked** — a user can only ever hold `role: "user"` on their own `accounts/{uid}` record; only an admin (assigned manually in the Firebase Console) can set `role: "admin"`.
+- **Per-user isolation** — each user can read/write only their own `users/{uid}` and `membership_orders/{uid}`; the admin can read and manage all records.
+- **Data validation** — membership levels, text lengths, and image sizes are validated at the database level to prevent malformed or oversized writes.
+- **Payment audit trail** — every completed order is appended to `membership_orders/{uid}` (immutable per user) so payments can be audited.
+
+To create the admin account:
 
 1. **Authentication → Users**, add the admin manually (email + password).
 2. Open **Realtime Database**, add a node:
@@ -132,6 +131,14 @@ accounts
 
 Replace `<admin-uid>` with the uid from Authentication → Users.
 
+### 🛡️ Production hardening notes
+
+This repository is a client-only reference implementation. For a real deployment, consider:
+
+- **Payment verification** — membership activation currently happens on the client after the customer confirms payment. For real money, move verification to **Firebase Cloud Functions** (or a payment gateway like Midtrans/Stripe) so activation is authorized server-side.
+- **Profile photos** — photos are stored as compressed Base64 in the Realtime Database to keep setup simple. For production, use **Firebase Storage** and store only the download URL.
+- **Rate limiting** — enable Firebase App Check and consider Abuse Protection rules on the Realtime Database.
+
 ---
 
 ## 📁 Project Structure
@@ -139,7 +146,7 @@ Replace `<admin-uid>` with the uid from Authentication → Users.
 ```
 gymlife_v2/
 ├── lib/
-│   ├── constants.dart               # App constants (identifier, membership levels, news categories)
+│   ├── constants.dart               # App constants (membership levels, news categories)
 │   ├── firebase_options.dart        # Firebase project configuration
 │   ├── main.dart                    # Entry point & routes
 │   ├── models/                      # MembershipPlan, NewsItem, UserProfile, GymLocation
@@ -148,8 +155,9 @@ gymlife_v2/
 │   │   ├── auth/                    # Slider, login, register, forgot password
 │   │   ├── home/                    # Home, membership, cart, invoice, exercise, location, profile
 │   │   └── admin/                   # Dashboard, manage news, manage members
-│   └── widgets/                     # Shared UI (CustomField)
-├── seed_data.json                   # Dummy data for membership plans, locations, and news
+│   └── widgets/                     # Shared UI (CustomField, ResponsiveCenter)
+├── seed_data.json                   # Seed data for membership plans, locations, and news
+├── vercel.json                      # SPA rewrite rules for Vercel
 └── firebase.rules.json              # Realtime Database security rules
 ```
 
@@ -161,9 +169,21 @@ gymlife_v2/
 accounts/{uid}                { email, username, role, createdAt }
 users/{uid}                   { name, email, description, gender, profileImage,
                                 activeMembership, membershipId, membershipExpiry, createdAt }
+membership_orders/{uid}       { planId, planName, price, status, createdAt } (one per order)
 gym_news/{key}                { title, content, category, date }
 membership_plans/{id}         { id, name, price, durationDays, benefits[], image }
 gym_locations/{id}            { id, name, address, phone, hours, imageUrl }
+```
+
+---
+
+## 🧪 Testing
+
+The test suite covers the app boot flow (auth slider renders):
+
+```bash
+flutter analyze   # static analysis — no issues expected
+flutter test      # widget tests
 ```
 
 ---

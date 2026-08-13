@@ -38,19 +38,19 @@ class _SignUpPageState extends State<SignUpPage> {
     final confirm = _confirmCtrl.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
-      _showMessage('Semua kolom wajib diisi.');
+      _showMessage('All fields are required.');
       return;
     }
     if (!_emailRegex.hasMatch(email)) {
-      _showMessage('Format email tidak valid.');
+      _showMessage('Invalid email format.');
       return;
     }
     if (password.length < 6) {
-      _showMessage('Password minimal 6 karakter.');
+      _showMessage('Password must be at least 6 characters.');
       return;
     }
     if (password != confirm) {
-      _showMessage('Konfirmasi password tidak sama.');
+      _showMessage('Passwords do not match.');
       return;
     }
 
@@ -63,13 +63,15 @@ class _SignUpPageState extends State<SignUpPage> {
       _passCtrl.clear();
       _confirmCtrl.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
+        const SnackBar(
+          content: Text('Registration successful! Please sign in.'),
+        ),
       );
       widget.onSwitchToIndex?.call(0);
     } on FirebaseAuthException catch (e) {
       _showMessage(_mapAuthError(e));
     } catch (_) {
-      _showMessage('Terjadi kesalahan. Coba lagi.');
+      _showMessage('Something went wrong. Please try again.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -78,95 +80,91 @@ class _SignUpPageState extends State<SignUpPage> {
   String _mapAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use':
-        return 'Email sudah terdaftar. Gunakan email lain.';
+        return 'Email is already registered. Please use a different one.';
       case 'weak-password':
-        return 'Password minimal 6 karakter.';
+        return 'Password must be at least 6 characters.';
       case 'invalid-email':
-        return 'Format email tidak valid.';
+        return 'Invalid email format.';
       default:
-        return 'Gagal mendaftar: ${e.code}';
+        return 'Registration failed: ${e.code}';
     }
   }
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(25),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color.fromARGB(255, 56, 57, 61),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             CustomField(
               controller: _nameCtrl,
-              hint: 'Nama Lengkap',
-              icon: Icons.person_outline,
+              hint: 'Full Name',
+              icon: Icons.person,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 15),
             CustomField(
               controller: _emailCtrl,
               hint: 'Email',
-              icon: Icons.email_outlined,
+              icon: Icons.email,
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 15),
             CustomField(
               controller: _passCtrl,
-              hint: 'Password',
-              icon: Icons.lock_outline,
+              hint: 'Password (Min 6 Characters)',
+              icon: Icons.lock,
               isPassword: true,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 15),
             CustomField(
               controller: _confirmCtrl,
-              hint: 'Konfirmasi Password',
+              hint: 'Confirm Password',
               icon: Icons.lock_outline,
               isPassword: true,
             ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _loading ? null : _register,
-              style: FilledButton.styleFrom(
-                backgroundColor: primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: FilledButton(
+                onPressed: _loading ? null : _register,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 17, 36, 83),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
+                child: _loading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Register',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
-              child: _loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Daftar',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
             ),
           ],
         ),

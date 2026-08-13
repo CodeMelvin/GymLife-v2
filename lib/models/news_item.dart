@@ -18,7 +18,7 @@ class NewsItem {
       id: key,
       title: data['title']?.toString() ?? '',
       content: data['content']?.toString() ?? '',
-      category: data['category']?.toString() ?? 'Info Umum',
+      category: data['category']?.toString() ?? 'General',
       date: DateTime.tryParse(data['date']?.toString() ?? '') ?? DateTime.now(),
     );
   }
