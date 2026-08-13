@@ -2,6 +2,14 @@
 
 > A fitness gym membership app built with Flutter and Firebase — browse gym news, order Silver / Gold / Platinum memberships, and manage your membership status.
 
+## 🎬 Demo
+
+<video src="Video/GymLife.mp4" controls="controls" width="100%"></video>
+
+> 🎬 **Direct link:** [`Video/GymLife.mp4`](Video/GymLife.mp4) — if the player above does not load, open the video directly in the repository.
+
+> 📱 **Try it:** download the latest APK from the [Releases](https://github.com/CodeMelvin/GymLife-v2/releases) page, or open the live web demo at **[https://gymlife-v2.vercel.app](https://gymlife-v2.vercel.app)**.
+
 ## ✨ Features
 
 - 🔐 **Authentication** — sign up, sign in, and password reset with role-based access (admin / customer)
@@ -26,11 +34,10 @@
 
 ---
 
-## 🔑 Demo Accounts
+## 🔑 Demo Account
 
 | Role | Email | Password | Access |
 |---|---|---|---|
-| Admin | `admin_master@gmail.com` | `12345678` | Manage news, view & manage all members |
 | Customer | `demo@gymlife.app` | `demo123` | Order memberships, view status, profile |
 
 You can also register a new account from the **Register** screen (role: customer).
@@ -158,6 +165,8 @@ gymlife_v2/
 │   └── widgets/                     # Shared UI (CustomField, ResponsiveCenter)
 ├── seed_data.json                   # Seed data for membership plans, locations, and news
 ├── vercel.json                      # SPA rewrite rules for Vercel
+├── Video/
+│   └── GymLife.mp4                  # App demo video (used in this README)
 └── firebase.rules.json              # Realtime Database security rules
 ```
 
