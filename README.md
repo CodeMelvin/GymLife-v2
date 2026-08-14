@@ -4,7 +4,7 @@
 
 ## 🎬 Demo
 
-<video src="https://raw.githubusercontent.com/CodeMelvin/GymLife-v2/main/Video/GymLife.mp4" controls="controls" width="100%"></video>
+<video src="https://github.com/user-attachments/assets/c3a172cc-a3b8-41fa-98d6-2c0f77af895a" controls="controls" width="100%"></video>
 
 > 🎬 **Direct link:** [`Video/GymLife.mp4`](Video/GymLife.mp4) — if the player above does not load, open the video directly in the repository.
 
