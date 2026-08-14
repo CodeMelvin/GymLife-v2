@@ -127,17 +127,6 @@ gymlife_v2/
 
 ---
 
-## 🧪 Testing
-
-The test suite covers the app boot flow (auth slider renders):
-
-```bash
-flutter analyze   # static analysis — no issues expected
-flutter test      # widget tests
-```
-
----
-
 ## 📝 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
