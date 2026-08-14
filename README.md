@@ -87,7 +87,7 @@ The app's Firebase credentials are **not committed** to this repository — they
 2. Create a project at [Firebase Console](https://console.firebase.google.com/) and add an **Android app** with package name `com.codemelvin.gymlife_v2`
 3. Run `flutterfire configure` from the project root and select your project — this regenerates `lib/firebase_options.dart` and `android/app/google-services.json` with your values
 4. In **Authentication → Sign-in method**, enable **Email/Password**
-5. In **Realtime Database**, create a database (region `asia-southeast1` for Indonesia) and apply the security rules from [`firebase.rules.json`](firebase.rules.json)
+5. In **Realtime Database**, create a database (region `asia-southeast1` for Indonesia) and configure its security rules in the **Firebase Console**
 6. Optionally import the seed data from [`seed_data.json`](seed_data.json) (nodes: `membership_plans`, `gym_locations`, `gym_news`)
 
 **Option B — build-time environment variables:**
@@ -112,39 +112,7 @@ flutter build web --release \
 
 (Web builds use `FIREBASE_WEB_API_KEY` / `FIREBASE_WEB_APP_ID` / `FIREBASE_WEB_MEASUREMENT_ID`.) This keeps credentials out of the source tree entirely — convenient for CI or hosting platforms like Vercel, where secrets live in environment variables.
 
-> **Note:** `android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`, `macos/Runner/GoogleService-Info.plist`, and `firebase.json` are git-ignored and never pushed.
-
-### 🔒 Security rules
-
-The security rules live in **`firebase.rules.json`** at the project root. Highlights:
-
-- **Role self-promotion is blocked** — a user can only ever hold `role: "user"` on their own `accounts/{uid}` record; only an admin (assigned manually in the Firebase Console) can set `role: "admin"`.
-- **Per-user isolation** — each user can read/write only their own `users/{uid}` and `membership_orders/{uid}`; the admin can read and manage all records.
-- **Data validation** — membership levels, text lengths, and image sizes are validated at the database level to prevent malformed or oversized writes.
-- **Payment audit trail** — every completed order is appended to `membership_orders/{uid}` (immutable per user) so payments can be audited.
-
-To create the admin account:
-
-1. **Authentication → Users**, add the admin manually (email + password).
-2. Open **Realtime Database**, add a node:
-
-```
-accounts
-  └─ <admin-uid>
-       ├─ email: "<admin-email>"
-       ├─ username: "Admin GymLife"
-       └─ role: "admin"
-```
-
-Replace `<admin-uid>` with the uid from Authentication → Users.
-
-### 🛡️ Production hardening notes
-
-This repository is a client-only reference implementation. For a real deployment, consider:
-
-- **Payment verification** — membership activation currently happens on the client after the customer confirms payment. For real money, move verification to **Firebase Cloud Functions** (or a payment gateway like Midtrans/Stripe) so activation is authorized server-side.
-- **Profile photos** — photos are stored as compressed Base64 in the Realtime Database to keep setup simple. For production, use **Firebase Storage** and store only the download URL.
-- **Rate limiting** — enable Firebase App Check and consider Abuse Protection rules on the Realtime Database.
+> **Note:** `android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`, `macos/Runner/GoogleService-Info.plist`, `firebase.json`, and `firebase.rules.json` are git-ignored and never pushed.
 
 ---
 
@@ -167,21 +135,6 @@ gymlife_v2/
 ├── vercel.json                      # SPA rewrite rules for Vercel
 ├── Video/
 │   └── GymLife.mp4                  # App demo video (used in this README)
-└── firebase.rules.json              # Realtime Database security rules
-```
-
----
-
-## 🗃️ Realtime Database Structure
-
-```
-accounts/{uid}                { email, username, role, createdAt }
-users/{uid}                   { name, email, description, gender, profileImage,
-                                activeMembership, membershipId, membershipExpiry, createdAt }
-membership_orders/{uid}       { planId, planName, price, status, createdAt } (one per order)
-gym_news/{key}                { title, content, category, date }
-membership_plans/{id}         { id, name, price, durationDays, benefits[], image }
-gym_locations/{id}            { id, name, address, phone, hours, imageUrl }
 ```
 
 ---
