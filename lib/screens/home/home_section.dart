@@ -59,26 +59,21 @@ class _HomeSectionState extends State<HomeSection> {
                       constraints: BoxConstraints(
                         maxWidth: wide ? 1100 : double.infinity,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _NewsCarousel(wide: wide),
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(20, 25, 20, 10),
-                            child: Text(
-                              'Choose Membership',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          _PlansList(price: _price),
-                        ],
+                      child: _NewsCarousel(wide: wide),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 25, 20, 10),
+                    child: Text(
+                      'Choose Membership',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
+                  _PlansList(price: _price),
                 ],
               );
             },

@@ -4,7 +4,7 @@
 
 ## 🎬 Demo
 
-<video src="Video/GymLife.mp4" controls="controls" width="100%"></video>
+<video src="https://raw.githubusercontent.com/CodeMelvin/GymLife-v2/main/Video/GymLife.mp4" controls="controls" width="100%"></video>
 
 > 🎬 **Direct link:** [`Video/GymLife.mp4`](Video/GymLife.mp4) — if the player above does not load, open the video directly in the repository.
 
@@ -95,19 +95,7 @@ The app's Firebase credentials are **not committed** to this repository — they
 Pass your own project values when building:
 
 ```
-flutter build web --release \
-  --dart-define=FIREBASE_WEB_API_KEY=... \
-  --dart-define=FIREBASE_WEB_APP_ID=... \
-  --dart-define=FIREBASE_ANDROID_API_KEY=... \
-  --dart-define=FIREBASE_ANDROID_APP_ID=... \
-  --dart-define=FIREBASE_IOS_API_KEY=... \
-  --dart-define=FIREBASE_IOS_APP_ID=... \
-  --dart-define=FIREBASE_MESSAGING_SENDER_ID=... \
-  --dart-define=FIREBASE_PROJECT_ID=... \
-  --dart-define=FIREBASE_AUTH_DOMAIN=... \
-  --dart-define=FIREBASE_DATABASE_URL=... \
-  --dart-define=FIREBASE_STORAGE_BUCKET=... \
-  --dart-define=FIREBASE_WEB_MEASUREMENT_ID=...
+flutter build apk --release --dart-define=FIREBASE_ANDROID_API_KEY=... --dart-define=FIREBASE_ANDROID_APP_ID=... --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_DATABASE_URL=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=...
 ```
 
 (Web builds use `FIREBASE_WEB_API_KEY` / `FIREBASE_WEB_APP_ID` / `FIREBASE_WEB_MEASUREMENT_ID`.) This keeps credentials out of the source tree entirely — convenient for CI or hosting platforms like Vercel, where secrets live in environment variables.
