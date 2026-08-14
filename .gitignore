@@ -55,4 +55,4 @@ firebase.rules.json
 .vercel/
 .vercel
 .env*
-run*.bat
+local_defines.json
